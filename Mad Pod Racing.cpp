@@ -7,94 +7,72 @@
 using namespace std;
 
 
-class Checkpoint {       // The class
-  public:             // Access specifier
-    int x;        // Attribute (int variable)
-    int y;  // Attribute (string variable)
+/**
+ * Class representing the Checkpoint object
+ */
+class Checkpoint {       
+  public:             
+    int x;        
+    int y;  
+    int dist;       
+    int angle;
+    int radius = 600;
 };
 
-int distanceBetweenTwoPoints(int x, int y, int a, int b){
-    return sqrt(pow(x - a, 2) + pow(y - b, 2));
-}
+
+/**
+ * Class representing the Pod object
+ */
+class Pod {       
+  public:             
+    int x;        
+    int y;  
+};
 
 
-int calculate_thrust(std::vector< Checkpoint > & list, int lap, int x, int y, int prev_x, int prev_y, int next_checkpoint_angle, int next_checkpoint_x, int next_checkpoint_y, int next_checkpoint_distance, int next_prev_checkpoint_distance,int CheckpointRadius){
-    double thrust = 100;
-
-    if (abs(next_checkpoint_angle) > 18){
-        thrust*= max(min((1 - (abs(next_checkpoint_angle)/90.0)), 1.0), 0.0);
-        thrust*= max(min((next_checkpoint_distance/(double)(CheckpointRadius*2)), 1.0), 0.0);
-    }
-
-    // check drift
-    int speed = sqrt((x - prev_x)*(x - prev_x) + (y - prev_y)*(y - prev_y));
-
-    if ( speed*3 > next_checkpoint_distance and lap > 0 and -6 < next_checkpoint_angle < 6){
-
-        int index_next = 0;
-
-        for(unsigned int i = 0; i < list.size(); i++){
-
-                    if (list[i].x == next_checkpoint_x and next_checkpoint_y == list[i].y){
-
-                        if (i!=list.size()-1){
-                            index_next = i++;
-                        }
-            
-                    }
-        }
-
-        cout << list[index_next].x << " " << list[index_next].y << " " << 40 << endl;
-        
-        return -1;           
-        }
-
-                
-
-    return int(thrust);
-}
-
-
-Checkpoint CheckpointManager(std::vector< Checkpoint > & list, std::vector< int > & dist, Checkpoint nextCheckpoint, Checkpoint firstCheckpoint, int next_checkpoint_dist, int& lap){
+/**
+ * Boost manager
+ *
+ * Compute the best moment when to boost the pod. The moment is between the checkpoints with greater distance. 
+ *
+ * @param list of the checkpoints
+ * @param number of lap
+ * @param Next checkpoint
+ * @param First checkpoint
+ * @return The best position where to boost
+ */
+Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpoint nextCheckpoint, Checkpoint firstCheckpoint){
     
     Checkpoint best_check;
-    bool newLap = false;
+    bool newLap = false;        //keep track if a new lap has begun
 
-    cerr << "Run function\n" << endl;
-
+    // Store the checkpoint information during the first lap
     if (lap == 0){
 
         if (list[list.size()-1].x != nextCheckpoint.x and nextCheckpoint.y != list[list.size()-1].y){
         
             if (nextCheckpoint.x != firstCheckpoint.x and firstCheckpoint.y != nextCheckpoint.y){
                 list.push_back(nextCheckpoint);
-                dist.push_back(next_checkpoint_dist);
             }
             else{
                 newLap = true;
                 lap = lap+1;
-                cerr << "NewLap\n" << endl;
             }
         
         }
     }
 
+    // After the first lap, we compute the best moment when to boost
     if (lap==1){
-
-        // find best checkpoint where to boost
-
-        // compute distance
-
-        // find best spot where to use BOOST
 
         int index_max = 0;
         int max=0;
         
-         for(unsigned int i = 0; i < dist.size(); i++){
+         for(unsigned int i = 0; i < list.size(); i++){
 
-            if (dist[i]>max){
+            if (list[i].dist > max){
                 index_max = i;
-                max = dist[i];
+                max = list[i].dist;
             }
         }
 
@@ -110,23 +88,68 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, std::vector< int 
 }
 
 
+/**
+ * Thrust manager
+ *
+ * Compute the best thrust to use. The closer a pod is to a checkpoint the lower its thrust is going to be.
+ *
+ * @param Boost boolean variable keeping track whether boost has already been used
+ * @param list of the checkpoints
+ * @param number of lap
+ * @param Current position of the pod
+ * @param First previous position of the pod
+ * @param Next checkpoint
+ * @return The best thrust value to use
+ */
+void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, Pod CurrPosition, Pod PrevPosition, Checkpoint landmark, Checkpoint first_checkpoint){
+    
+    double thrust = 100;
+    int coefficient = 2;
+    int safeAngle = 18;
+    double constantAngle = 90;
+
+    // Compute best thrust to use
+    if (abs(landmark.angle) > safeAngle){
+
+        thrust*= max(min((1 - (abs(landmark.angle)/constantAngle)), 1.0), 0.0);
+        thrust*= max(min((landmark.dist/(double)(landmark.radius*coefficient)), 1.0), 0.0);
+    }
+
+    // Check best moment to boost 
+    Checkpoint bestBoost = CheckpointManager(list, lap, landmark, first_checkpoint);
+
+    if (bestBoost.x == landmark.x and landmark.y == bestBoost.y){
+        if (boost == true){ 
+            if (abs(landmark.angle) <= 1){
+                cout << landmark.x << " " << landmark.y << " " << "BOOST" << endl;
+                boost = false;
+                cerr << "BOOST" << endl;
+                return;
+            }
+        }
+    }
+
+    cout << landmark.x << " " << landmark.y << " " << int(thrust) << endl;
+
+    return ;
+}
+
+
 int main()
 {
 
-    bool boost = true;
+    bool game_started = false;      // keep track if the game has just started
+    bool boost = true;              // keep track if boost is available
+    int lap = 0;                    // keep track of the number of laps
 
-    std::vector< Checkpoint > list;
-    std::vector< int > dist;
+    std::vector< Checkpoint > list; // list of checkpoints
 
-    bool game_started = false;
-    Checkpoint first_checkpoint;
+    Checkpoint first_checkpoint;        
 
-    int lap = 0;
+    Pod prevPosition;            
+    prevPosition.x = 0;
+    prevPosition.y = 0;
 
-    int prev_x= 0;
-    int prev_y = 0;
-    
-    int next_prev_checkpoint_dist = 0;
 
     // game loop
     while (1) {
@@ -137,55 +160,35 @@ int main()
         int next_checkpoint_dist; // distance to the next checkpoint
         int next_checkpoint_angle; // angle between your pod orientation and the direction of the next checkpoint
         cin >> x >> y >> next_checkpoint_x >> next_checkpoint_y >> next_checkpoint_dist >> next_checkpoint_angle; cin.ignore();
+        
         int opponent_x;
         int opponent_y;
         cin >> opponent_x >> opponent_y; cin.ignore();
 
-        // save first checkpoint
+        // update checkpoint
+        Checkpoint nextLandmark;
+        nextLandmark.x=next_checkpoint_x;
+        nextLandmark.y=next_checkpoint_y;
+        nextLandmark.dist = next_checkpoint_dist;
+        nextLandmark.angle = next_checkpoint_angle;
+
+        // Update pod's position
+        Pod CurrPosition;
+        CurrPosition.x = x;
+        CurrPosition.y = y;
+
+        // save first checkpoint at first iteraction of the game
         if (!game_started){
-            first_checkpoint.x=next_checkpoint_x;
-            first_checkpoint.y=next_checkpoint_y;
             game_started = true;
+            first_checkpoint = nextLandmark;
             list.push_back(first_checkpoint);
-            dist.push_back(next_checkpoint_dist);
         }
 
+        // Move the pod
+        calculate_thrust(boost, list, lap, CurrPosition, prevPosition, nextLandmark, first_checkpoint);
         
-
-        int thrust = calculate_thrust(list, lap, x,y, prev_x, prev_y, next_checkpoint_angle, next_checkpoint_x, next_checkpoint_y, next_checkpoint_dist, next_prev_checkpoint_dist, 600);
-        
-        prev_x = x;
-        prev_y=y;
-
-        next_prev_checkpoint_dist = next_checkpoint_dist;
-
-        
-        Checkpoint nextChecpoint;
-        nextChecpoint.x = next_checkpoint_x;
-        nextChecpoint.y = next_checkpoint_y;
-        
-        Checkpoint best = CheckpointManager(list, dist, nextChecpoint, first_checkpoint, next_checkpoint_dist, lap);
-
-        if (best.x == nextChecpoint.x and nextChecpoint.y == best.y){
-            if (boost == true){ // is the boost available?
-                if (abs(next_checkpoint_angle) <= 1){
-                    cout << next_checkpoint_x << " " << next_checkpoint_y << " " << "BOOST" << endl;
-                    cerr << "BOOST" << endl;
-                    boost = false;
-                }
-                else
-                    if (thrust!=-1)
-                        cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
-            }
-            else{
-                if (thrust!=-1)
-                    cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
-            }
-        }
-        else{
-            if (thrust!=-1)
-                cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
-        }
-    
+        // Update previous pod's position
+        prevPosition.x = x;
+        prevPosition.y = y;
     }
 }
