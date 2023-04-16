@@ -58,7 +58,6 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpo
                 newLap = true;
                 lap = lap+1;
             }
-        
         }
     }
 
@@ -68,14 +67,13 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpo
         int index_max = 0;
         int max=0;
         
-         for(unsigned int i = 0; i < list.size(); i++){
-
+        for(unsigned int i = 0; i < list.size(); i++){
             if (list[i].dist > max){
                 index_max = i;
                 max = list[i].dist;
             }
         }
-
+        
         best_check = list[index_max];
 
         return best_check;
