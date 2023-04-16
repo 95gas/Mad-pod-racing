@@ -95,11 +95,10 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpo
  * @param list of the checkpoints
  * @param number of lap
  * @param Current position of the pod
- * @param First previous position of the pod
  * @param Next checkpoint
  * @return The best thrust value to use
  */
-void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, Pod CurrPosition, Pod PrevPosition, Checkpoint landmark, Checkpoint first_checkpoint){
+void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, Pod CurrPosition, Checkpoint landmark, Checkpoint first_checkpoint){
     
     double thrust = 100;
     int coefficient = 2;
@@ -140,12 +139,7 @@ int main()
 
     std::vector< Checkpoint > list; // list of checkpoints
 
-    Checkpoint first_checkpoint;        
-
-    Pod prevPosition;            
-    prevPosition.x = 0;
-    prevPosition.y = 0;
-
+    Checkpoint first_checkpoint;   
 
     // game loop
     while (1) {
@@ -181,10 +175,6 @@ int main()
         }
 
         // Move the pod
-        calculate_thrust(boost, list, lap, CurrPosition, prevPosition, nextLandmark, first_checkpoint);
-        
-        // Update previous pod's position
-        prevPosition.x = x;
-        prevPosition.y = y;
+        calculate_thrust(boost, list, lap, CurrPosition, nextLandmark, first_checkpoint);
     }
 }
