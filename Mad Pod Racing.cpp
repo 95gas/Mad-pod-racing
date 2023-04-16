@@ -96,6 +96,7 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpo
  * @param number of lap
  * @param Current position of the pod
  * @param Next checkpoint
+ * @param First checkpoint
  * @return The best thrust value to use
  */
 void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, Pod CurrPosition, Checkpoint landmark, Checkpoint first_checkpoint){
