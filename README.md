@@ -3,7 +3,7 @@
 The code presented here is my attempt to get the highest possible rank in the game Coders Strike Back. This code let you achieve the bronze league. 
 
 ## Results
-Current rank: Bronze 11,643/19,338
+Current rank: Bronze 32,115 / 41,906
 
 ## Techniques
 I implemented the following strategy:
