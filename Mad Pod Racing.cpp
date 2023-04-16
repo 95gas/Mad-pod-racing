@@ -10,7 +10,34 @@ int distanceBetweenTwoPoints(int x, int y, int a, int b){
 return sqrt(pow(x - a, 2) + pow(y - b, 2));
 }
 
+int calculate_thrust(int x, int y, int opponent_x, int opponent_y,int* boost, int next_checkpoint_angle, int next_checkpoint_x, int next_checkpoint_y, int next_checkpoint_distance, int next_prev_checkpoint_distance,int CheckpointRadius){
+    int thrust = 100;
+    int dist = distanceBetweenTwoPoints(x, y,next_checkpoint_x, next_checkpoint_y);
+    
+    if (abs(next_checkpoint_angle) < 10){
 
+        if (*boost == 0){ // is the boost available?
+
+        // are we heading towards a checkpoint?
+            if (next_checkpoint_distance>=4500){
+
+                *boost = 1;
+                return 101; // BOOST
+            }
+         
+        }
+    }
+    else{
+    
+        thrust*= max(min((1 - abs(next_checkpoint_angle)/90), 1), 0);
+        thrust*= max(min((next_checkpoint_distance/(CheckpointRadius*2)), 1), 0);
+    }
+        
+    cerr << "Debug messages..." << endl;
+    cerr << next_checkpoint_distance << endl;
+    
+    return thrust;
+}
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -46,33 +73,12 @@ int main()
         // followed by the power (0 <= thrust <= 100) or "BOOST"
         // i.e.: "x y thrust"
         
-        if (next_checkpoint_angle > 60 or next_checkpoint_angle < -60)
-            thrust = 20;
-        if (next_checkpoint_angle > 90 or next_checkpoint_angle < -90)
-            thrust = 10;
-        else
-            thrust = 100;
+        int thrust = calculate_thrust(x,y, opponent_x, opponent_y, &BOOST, next_checkpoint_angle, next_checkpoint_x, next_checkpoint_y, next_checkpoint_dist, next_prev_checkpoint_dist, 600);
+        next_prev_checkpoint_dist = next_checkpoint_dist;
 
-
-        // BOOST
-        if (!BOOST){ // is the boost available?
-            
-            // are we heading towards a checkpoint?
-            if (next_checkpoint_dist>=4000){
-        
-                // are the checkpoint far enough from us?
-                if (next_checkpoint_angle <= 10 and next_checkpoint_angle >= -10){
-                    BOOST = true;
-                    cout << next_checkpoint_x << " " << next_checkpoint_y << " " << "BOOST" << endl;
-                }
-                else{
-                 cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
-                }
-            }
-            else{
-                cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
-            }
-         }
+        if (thrust == 101){
+            cout << next_checkpoint_x << " " << next_checkpoint_y << " " << "BOOST" << endl;
+        }
         else{
             cout << next_checkpoint_x << " " << next_checkpoint_y << " " << thrust << endl;
         }
