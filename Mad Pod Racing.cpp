@@ -14,7 +14,7 @@ class Checkpoint {
   public:             
     int x;        
     int y;  
-    int dist;       
+    int dist;
     int angle;
     int radius = 600;
 };
@@ -110,7 +110,6 @@ void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, 
 
     // Compute best thrust to use
     if (abs(landmark.angle) > safeAngle){
-
         thrust*= max(min((1 - (abs(landmark.angle)/constantAngle)), 1.0), 0.0);
         thrust*= max(min((landmark.dist/(double)(landmark.radius*coefficient)), 1.0), 0.0);
     }
@@ -137,7 +136,6 @@ void calculate_thrust(bool& boost, std::vector< Checkpoint > & list, int & lap, 
 
 int main()
 {
-
     bool game_started = false;      // keep track if the game has just started
     bool boost = true;              // keep track if boost is available
     int lap = 0;                    // keep track of the number of laps
