@@ -31,7 +31,7 @@ class Pod {
 
 
 /**
- * Boost manager
+ * BOOST MANAGER
  *
  * Compute the best moment when to boost the pod. The moment is between the checkpoints with greater distance. 
  *
@@ -87,7 +87,7 @@ Checkpoint CheckpointManager(std::vector< Checkpoint > & list, int& lap, Checkpo
 
 
 /**
- * Thrust manager
+ * THRUST MANAGER
  *
  * Compute the best thrust to use. The closer a pod is to a checkpoint the lower its thrust is going to be.
  *
